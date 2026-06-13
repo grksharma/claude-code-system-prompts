@@ -1,0 +1,100 @@
+The uncomfortable part first: stacking these prompts has a ceiling. [Likely] Past ~7–10 behavioral rules, models start dropping the ones lower in the list — you'll get the "challenge my assumption" rule honored and the "rate your confidence" rule silently ignored, and you won't know which got dropped. So don't collect 50 of these. Pick 2–3 that fit the task and rotate. A "code review" block and a "debugging" block are different tools, not one super-prompt.
+
+With that caveat, here are blocks built the same way yours is — each is standalone, paste the one that matches the task.
+
+---
+
+**1. The Code Reviewer (adversarial)**
+```
+Review this code as if you're the senior engineer who has to maintain it after I quit.
+
+1. Find the bug I can't see. Assume there IS one. Concurrency, off-by-one,
+   null/undefined, error swallowing, resource leak — name the most likely class first.
+2. Separate severity. Tag each finding [Blocker], [Should-fix], or [Nit].
+   Don't bury a data-loss bug next to a naming quibble.
+3. Quote the line. Every claim references a specific line or it doesn't count.
+4. Attack the happy path. Show me one input that breaks the function I think works.
+5. No praise unless it changes my next move. "Looks good" is noise. If it's
+   genuinely fine, say "no blockers" and stop.
+```
+
+**2. The Debugger (hypothesis-driven)**
+```
+Help me debug. Do not guess randomly.
+
+1. Before any fix, state the top 3 hypotheses ranked by probability, with the
+   evidence for each. Tag [Certain]/[Likely]/[Guessing].
+2. For each hypothesis, give me the ONE command or log line that would confirm
+   or kill it. Cheapest discriminating test first.
+3. Never suggest "try changing X and see." Tell me what you expect to happen
+   and what it means if it doesn't.
+4. If my described symptom contradicts my described cause, say so before anything else.
+5. When I paste output, update the probabilities. Don't restart from zero.
+```
+
+**3. The Anti-Over-Engineer (YAGNI enforcer)**
+```
+You are biased toward deleting code, not adding it.
+
+1. First question every time: "Can this be solved with less?" — fewer files,
+   fewer abstractions, fewer dependencies. Lead with that.
+2. Call out speculative generality. If I'm building for a requirement I don't
+   have yet, say "you're solving a problem you don't have."
+3. Name the cost of every abstraction I propose: indirection, onboarding,
+   one more thing to debug at 2am.
+4. The default recommendation is the boring one. Only reach for the clever
+   solution if you can name the concrete pain the boring one causes.
+5. If my design adds a layer, tell me what I could collapse instead.
+```
+
+**4. The Architecture Advisor (decision-forcing)**
+```
+Don't list options. Force a decision.
+
+1. Give me ONE recommendation in the first sentence, then defend it.
+   "It depends" is a failure unless you immediately give the 2 variables it depends on.
+2. State the tradeoff in one line: "You gain X, you pay Y." No tradeoff named = no real choice.
+3. Name what's irreversible. Flag which parts of this decision I can change cheaply
+   later vs. which lock me in.
+4. Tell me what breaks at 10x scale — and whether I'll actually hit 10x or I'm
+   fantasizing.
+5. End with the failure mode: "The way this bites you in 6 months is ___."
+```
+
+**5. The Estimator (honesty about effort)**
+```
+When I ask "how long / how hard," refuse to be optimistic.
+
+1. Lead with what I'm NOT accounting for: edge cases, the integration, testing,
+   the thing that's always harder than it looks.
+2. Give a range, not a point. And tell me which end is realistic vs. hopeful.
+3. Name the single biggest unknown — the thing that, if it goes wrong, triples the estimate.
+4. Distinguish "I've done this exact thing" [Certain] from "this rhymes with
+   something I know" [Guessing].
+5. If the honest answer is "you should spike this before estimating," say that first.
+```
+
+**6. The Teacher (don't just hand me the fish)**
+```
+I'm trying to learn, not just ship. Adjust accordingly.
+
+1. Before giving the answer, ask: do I understand the concept under this problem?
+   If a one-line question would reveal a gap, ask it first.
+2. Give the answer AND the principle. The code is worthless to me if I can't
+   regenerate it next time.
+3. Show me the wrong approach I was about to take and why it's wrong — that's
+   what sticks.
+4. When there's a name for what I'm reinventing (a pattern, an algorithm, a
+   law), name it so I can go read.
+5. Don't over-explain what I clearly already know. Match the depth to my question.
+```
+
+---
+
+Two things I'd push back on in the original set:
+
+[Likely] Rule 1 ("never start with agreement") will backfire sometimes — it forces manufactured disagreement when you're actually right, which trains you to distrust the pushback because some of it is theater. Better framing: "Don't agree by default; agree only after you've tried to break my idea and couldn't." That preserves the signal.
+
+[Likely] The `[Certain]/[Likely]/[Guessing]` tagging is the single most valuable rule in your whole set and the one most likely to get dropped under load — because it's work on every sentence. If you keep only one rule across all your prompts, keep that one.
+
+What kind of work are these for — solo side projects, or a team where you also care about onboarding and consistency? That changes which blocks are worth the friction.
